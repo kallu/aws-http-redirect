@@ -2,7 +2,7 @@
 
 This is serverless & codeless, as no servers nor code you need to maintain, implementation
 of HTTP redirecting service. Advantage of using Application Load Balancer + Global Accelerator
-is ability to redirect _naked domains_, e.g. https://mydomain.fi -> https://mydomain.com/fi/ 
+is ability to redirect _naked domains_, e.g. mydomain.fi -> mydomain.com/fi/ 
 that is not possible with S3/Cloudfront -solution.
 
 Cloudformation template is generated from Jinja template as this makes it much easier to maintain
