@@ -8,7 +8,7 @@ with S3/Cloudfront -solution.
 Cloudformation template is generated from Jinja template as this makes it much easier to maintain
 a configuration of multiple redirects. To render Cloudformation from Jinja run
 
-```jinja -d http301-conf.yaml http301-template.yaml.j2 > http301-template.yaml```
+> ```jinja -d http301-conf.yaml http301-template.yaml.j2 > http301-template.yaml```
 
 Cloudformation will create all resources except the ACM SSL certificate you must have to support HTTPS.
 It is possible to deploy template without ACM certificate, but then only HTTP redirection is enabled.
