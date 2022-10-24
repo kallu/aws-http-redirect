@@ -22,19 +22,10 @@ Metadata:
         Label:
           default: Network configuration
         Parameters:
-          - VPC
-          - Subnets
           - CertId
           - AllowAccessCIDR
 
 Parameters:
-  VPC:
-    Type: AWS::EC2::VPC::Id
-    Description: VPC for deployment
-
-  Subnets:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: Subnets within above VPC (min 2)
 
   AllowAccessCIDR:
     Type: String
@@ -45,23 +36,40 @@ Parameters:
   CertId:
     Type: String
     Description: ACM certificate ID, required to enable HTTPS
-
-Rules:
-  SubnetsInVPC:
-    Assertions:
-    - Assert:
-        Fn::EachMemberIn:
-        - Fn::ValueOf:
-          - Subnets
-          - VpcId
-        - 
-          - !Ref VPC
-      AssertDescription: All subnets must within the VPC
   
 Conditions:
   ListenHTTPS: !Not [!Equals [!Ref CertId, "" ]]
 
 Resources:
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: '192.168.0.0/24'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}'
+
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC 
+      AvailabilityZone: !Sub '${AWS::Region}a'
+      CidrBlock: '192.168.0.0/25'
+      Tags: 
+        - Key: Name
+          Value: !Sub '${AWS::StackName} subnet A'
+
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC 
+      AvailabilityZone: !Sub '${AWS::Region}b'
+      CidrBlock: '192.168.0.128/25'
+      Tags: 
+        - Key: Name
+          Value: !Sub '${AWS::StackName} subnet B'
+
   SecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -80,6 +88,7 @@ Resources:
 
   SGroupIngress443:
     Type: "AWS::EC2::SecurityGroupIngress"
+    Condition: ListenHTTPS
     Properties:
       GroupId: !Ref SecGroup
       CidrIp: !Ref AllowAccessCIDR
@@ -97,7 +106,9 @@ Resources:
       Scheme: internal
       SecurityGroups:
         - !Ref SecGroup
-      Subnets: !Ref Subnets
+      Subnets:
+        - !Ref SubnetA
+        - !Ref SubnetB
       Tags:
       - Key: Name
         Value: !Ref AWS::StackName
@@ -131,10 +142,13 @@ Resources:
       Certificates: 
       - CertificateArn: !Sub "arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/${CertId}"
 
-{% for type in ['Http', 'Https'] %}
+{% for type in ['HTTP', 'HTTPS'] %}
  {% for item in redirects %}
   {{type}}ListenerRule{{item.Rule}}:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
+    {% if type == 'HTTPS' -%}
+    Condition: Listen{{type}}
+    {%- endif %}
     Properties:
       ListenerArn: !Ref {{type}}Listener
       Priority: {{item.Rule}}
@@ -152,7 +166,7 @@ Resources:
             Query: "#{query}"
             StatusCode: HTTP_301
  {% endfor %}
-{% endfor %}
+{%- endfor %}
 
   GA:
     Type: "AWS::GlobalAccelerator::Accelerator"
