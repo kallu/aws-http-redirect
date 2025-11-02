@@ -157,11 +157,11 @@ Resources:
       Certificates: 
       - CertificateArn: !Sub "arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/${CertId}"
 
-{% for type in ['HTTP', 'HTTPS'] %}
- {% for item in redirects %}
+{% for type in ['HTTP', 'HTTPS'] -%}
+ {%- for item in redirects %}
   {{type}}ListenerRule{{item.Rule}}:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
-    {% if type == 'HTTPS' -%}
+    {%- if type == 'HTTPS' %}
     Condition: Listen{{type}}
     {%- endif %}
     Properties:
@@ -184,7 +184,7 @@ Resources:
 	    Query: "#{query}" 
             {% endif -%}
             StatusCode: HTTP_301
- {%- endfor %}
+ {% endfor %}
 {%- endfor %}
 
   GA:

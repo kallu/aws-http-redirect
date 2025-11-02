@@ -12,4 +12,5 @@ redirects:
       Port: 443
       Host: carriagereturn.nl
       Path: '/fi/#{path}'
+      Query: foo=bar
       Rule: 101

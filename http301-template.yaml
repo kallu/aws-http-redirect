@@ -39,6 +39,21 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}'
 
+  # NOTE: IGW must be attached to VPC (but you don't need to create a route to it) for GA to work
+
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}'
+
+  IGWattachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref IGW
+
   SubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -102,7 +117,7 @@ Resources:
       - Key: Name
         Value: !Ref AWS::StackName
 
-  HttpListener:
+  HTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
@@ -115,7 +130,7 @@ Resources:
       Port: 80
       Protocol: HTTP
 
-  HttpsListener:
+  HTTPSListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Condition: ListenHTTPS
     Properties:
@@ -132,10 +147,8 @@ Resources:
       - CertificateArn: !Sub "arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/${CertId}"
 
 
- 
   HTTPListenerRule100:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
-    
     Properties:
       ListenerArn: !Ref HTTPListener
       Priority: 100
@@ -150,12 +163,11 @@ Resources:
             Path: /#{path}
             Port: 443
             Protocol: HTTPS
-            Query: "#{query}"
+            Query: "#{query}" 
             StatusCode: HTTP_301
  
   HTTPListenerRule101:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
-    
     Properties:
       ListenerArn: !Ref HTTPListener
       Priority: 101
@@ -170,9 +182,8 @@ Resources:
             Path: /fi/#{path}
             Port: 443
             Protocol: HTTPS
-            Query: "#{query}"
-            StatusCode: HTTP_301
- 
+            Query: "foo=bar"
+	    StatusCode: HTTP_301
  
   HTTPSListenerRule100:
     Type: "AWS::ElasticLoadBalancingV2::ListenerRule"
@@ -191,7 +202,7 @@ Resources:
             Path: /#{path}
             Port: 443
             Protocol: HTTPS
-            Query: "#{query}"
+            Query: "#{query}" 
             StatusCode: HTTP_301
  
   HTTPSListenerRule101:
@@ -211,8 +222,8 @@ Resources:
             Path: /fi/#{path}
             Port: 443
             Protocol: HTTPS
-            Query: "#{query}"
-            StatusCode: HTTP_301
+            Query: "foo=bar"
+	    StatusCode: HTTP_301
  
 
   GA:
