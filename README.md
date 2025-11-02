@@ -18,7 +18,11 @@ Global Accelerator provides 2 static anycast IP addresses that can be used for A
 DNS entries, including naked domains. After the stack has been provisioned, you will find GA DNS name
 from stack output and resolve GA addresses.
 
-> ```INSERT HERE A SAMPLE DIG CMD```
+> ```
+> % dig +short ab4520940945edb67.awsglobalaccelerator.com
+> 3.33.143.166
+> 166.117.29.147
+> ```
 
 ![architecture-diagram](http301.png)
 
