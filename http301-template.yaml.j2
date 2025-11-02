@@ -50,6 +50,21 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}'
 
+  # NOTE: IGW must be attached to VPC (but you don't need to create a route to it) for GA to work
+
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}'
+
+  IGWattachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref IGW
+
   SubnetA:
     Type: AWS::EC2::Subnet
     Properties:
@@ -113,7 +128,7 @@ Resources:
       - Key: Name
         Value: !Ref AWS::StackName
 
-  HttpListener:
+  HTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
@@ -126,7 +141,7 @@ Resources:
       Port: 80
       Protocol: HTTP
 
-  HttpsListener:
+  HTTPSListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Condition: ListenHTTPS
     Properties:
@@ -163,9 +178,13 @@ Resources:
             Path: {{item.Path}}
             Port: {{item.Port}}
             Protocol: {{item.Protocol}}
-            Query: "#{query}"
+            {% if item.Query is defined -%}
+            Query: "{{item.Query}}"
+	    {% else -%}
+	    Query: "#{query}" 
+            {% endif -%}
             StatusCode: HTTP_301
- {% endfor %}
+ {%- endfor %}
 {%- endfor %}
 
   GA:
